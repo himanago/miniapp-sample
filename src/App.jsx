@@ -1,27 +1,42 @@
-import './App.css';
+import { useEffect, useState } from "react";
+import liff from "@line/liff";
+import "./App.css";
 
 function App() {
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    liff
+      .init({
+        liffId: import.meta.env.VITE_LIFF_ID
+      })
+      .then(() => {
+        setMessage("LIFF init succeeded.");
+        liff.getProfile()
+          .then((profile) => {
+            setName(profile.displayName);
+          })
+          .catch((err) => {
+            console.log("error", err);
+          });
+      })
+      .catch((e) => {
+        setMessage("LIFF init failed.");
+        setError(`${e}`);
+      });
+  });
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src="Octocat.png" className="App-logo" alt="logo" />
+      {message && <p>{message}</p>}
+      {error && (
         <p>
-          GitHub Codespaces <span className="heart">♥️</span> React
+          <code>{error}</code>
         </p>
-        <p className="small">
-          Edit <code>src/App.jsx</code> and save to reload.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </p>
-      </header>
+      )}
+      {name && <p>こんにちは、{name}さん</p>}
     </div>
   );
 }
