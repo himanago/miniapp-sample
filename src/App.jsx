@@ -36,7 +36,7 @@ function App() {
         ...prev,
         { id: fruitCounter.current++, x: Math.random() * 90, y: 0 },
       ]);
-    }, 1000);
+    }, 3000);
 
     // フルーツ落下処理
     const dropInterval = setInterval(() => {
@@ -44,7 +44,7 @@ function App() {
         prev
           .map((fruit) => ({
             ...fruit,
-            y: fruit.y + 1, // 落下速度を遅く
+            y: fruit.y + 1.5, // 落下速度を遅く
           }))
           .filter((fruit) => fruit.y <= 100) // 画面外のフルーツを削除
       );
