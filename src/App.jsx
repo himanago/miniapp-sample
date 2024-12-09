@@ -162,7 +162,7 @@ function App() {
       <canvas
         ref={canvasRef}
         width={canvasSize.width}
-        height={canvasSize.height}
+        height={canvasSize.height - 100}
       ></canvas>
       <p>スコア: {score}</p>
       <p>ミス: {missedFruits}/5</p>
