@@ -273,7 +273,17 @@ function App() {
             ]
           }
         }
-      ]);
+      ]).then(function (res) {
+        if (res) {
+          console.log(`[${res.status}] Message sent!`);
+        } else {
+          console.log("TargetPicker was closed!");
+        }
+      })
+      .catch(function (error) {
+        alert(error);
+        console.log("something wrong happen");
+      });
     }
   };
 
