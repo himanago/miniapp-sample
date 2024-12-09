@@ -66,29 +66,32 @@ function App() {
   useEffect(() => {
     if (gameOver) return;
 
-    // バスケットとフルーツの衝突判定
-    setFruits((prev) =>
-      prev.filter((fruit) => {
-        const basketWidth = 10; // バスケットの幅（%）
-        if (
-          fruit.y >= 90 && // フルーツがバスケットの高さ付近
-          fruit.x > basketPosition - basketWidth / 2 &&
-          fruit.x < basketPosition + basketWidth / 2
-        ) {
-          setScore((s) => s + fruit.type.score); // フルーツごとのスコア加算
-          return false; // キャッチしたフルーツを削除
-        }
-        return true;
-      })
-    );
+    const newFruits = [];
+    let missedCount = 0;
 
-    // 落としたフルーツをカウント
-    setMissedFruits((missed) =>
-      missed + fruits.filter((fruit) => fruit.y > 100).length
-    );
+    // 衝突判定と落としたフルーツのカウント
+    fruits.forEach((fruit) => {
+      const basketWidth = 10; // バスケットの幅（%）
+      if (
+        fruit.y >= 90 && // フルーツがバスケットの高さ付近
+        fruit.x > basketPosition - basketWidth / 2 &&
+        fruit.x < basketPosition + basketWidth / 2
+      ) {
+        setScore((s) => s + fruit.type.score); // スコア加算
+      } else if (fruit.y > 100) {
+        missedCount++; // 画面外に出たフルーツをカウント
+      } else {
+        newFruits.push(fruit); // 残すフルーツ
+      }
+    });
+
+    setFruits(newFruits);
+    if (missedCount > 0) {
+      setMissedFruits((prev) => prev + missedCount);
+    }
 
     // ゲームオーバー判定
-    if (missedFruits >= 5) {
+    if (missedFruits + missedCount >= 5) {
       setGameOver(true);
     }
   }, [fruits, basketPosition, missedFruits, gameOver]);
