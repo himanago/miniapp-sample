@@ -169,7 +169,7 @@ function App() {
                 "contents": [
                   {
                     "type": "text",
-                    "text": `フルーツキャッチゲームで\n${score}点をとったよ！`,
+                    "text": `フルーツキャッチゲームで${score}点をとったよ！`,
                     "size": "lg",
                     "color": "#000000",
                     "weight": "bold",
