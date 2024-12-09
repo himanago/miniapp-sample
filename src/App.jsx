@@ -275,9 +275,9 @@ function App() {
         }
       ]).then(function (res) {
         if (res) {
-          console.log(`[${res.status}] Message sent!`);
+          alert(`[${res.status}] Message sent!`);
         } else {
-          console.log("TargetPicker was closed!");
+          alert("TargetPicker was closed!");
         }
       })
       .catch(function (error) {
