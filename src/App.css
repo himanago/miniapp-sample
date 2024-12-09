@@ -37,6 +37,7 @@
   width: 100%;
   background-color: #f0f8ff;
   overflow: hidden;
+  user-select: none;
 }
 
 .basket {
@@ -44,7 +45,7 @@
   bottom: 5%;
   left: 50%;
   transform: translateX(-50%);
-  width: 80px;
+  width: 10%;
   height: 20px;
   background-color: #8b0000;
   border-radius: 10px;
@@ -57,27 +58,4 @@
   background-color: #ffa07a;
   border-radius: 50%;
   aspect-ratio: 1 / 1; /* 比率を固定 */
-}
-
-.controls {
-  position: absolute;
-  bottom: 2%;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-button {
-  padding: 10px 20px;
-  font-size: 18px;
-  border: none;
-  background-color: #6a5acd;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #483d8b;
 }

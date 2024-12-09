@@ -7,7 +7,6 @@ function App() {
   const [fruits, setFruits] = useState([]); // 落ちてくるフルーツ
   const [score, setScore] = useState(0); // スコア
   const fruitCounter = useRef(0); // フルーツIDを管理
-  const gameInterval = useRef(null); // ゲームのタイマーを管理
 
   useEffect(() => {
     liff
@@ -45,13 +44,11 @@ function App() {
         prev
           .map((fruit) => ({
             ...fruit,
-            y: fruit.y + 2, // 落下速度
+            y: fruit.y + 1, // 落下速度を遅く
           }))
-          .filter((fruit) => fruit.y <= 100) // 画面外に出たフルーツを削除
+          .filter((fruit) => fruit.y <= 100) // 画面外のフルーツを削除
       );
     }, 50);
-
-    gameInterval.current = { fruitInterval, dropInterval };
 
     return () => {
       clearInterval(fruitInterval);
@@ -63,10 +60,11 @@ function App() {
     // バスケットとフルーツの衝突判定
     setFruits((prev) =>
       prev.filter((fruit) => {
+        const basketWidth = 10; // バスケットの幅（%）
         if (
           fruit.y >= 90 && // フルーツがバスケットの高さ付近
-          fruit.x > basketPosition - 5 &&
-          fruit.x < basketPosition + 5
+          fruit.x > basketPosition - basketWidth / 2 &&
+          fruit.x < basketPosition + basketWidth / 2
         ) {
           setScore((s) => s + 1); // スコア加算
           return false; // キャッチしたフルーツを削除
@@ -74,15 +72,31 @@ function App() {
         return true;
       })
     );
-  }, [basketPosition]);
+  }, [fruits, basketPosition]);
 
-  // バスケットを移動
-  const moveBasket = useCallback(
-    (direction) => {
-      setBasketPosition((pos) => Math.max(0, Math.min(90, pos + direction)));
+  // クリック操作でバスケットを移動
+  const handleWindowClick = useCallback(
+    (event) => {
+      const clickX = event.clientX;
+      const windowWidth = window.innerWidth;
+
+      if (clickX < windowWidth / 2) {
+        // 左クリック
+        setBasketPosition((pos) => Math.max(0, pos - 5));
+      } else {
+        // 右クリック
+        setBasketPosition((pos) => Math.min(90, pos + 5));
+      }
     },
     [setBasketPosition]
   );
+
+  useEffect(() => {
+    window.addEventListener('click', handleWindowClick);
+    return () => {
+      window.removeEventListener('click', handleWindowClick);
+    };
+  }, [handleWindowClick]);
 
   return (
     <div className="game-container">
@@ -96,10 +110,6 @@ function App() {
           style={{ left: `${fruit.x}%`, top: `${fruit.y}%` }}
         ></div>
       ))}
-      <div className="controls">
-        <button onClick={() => moveBasket(-5)}>左</button>
-        <button onClick={() => moveBasket(5)}>右</button>
-      </div>
     </div>
   );
 }
