@@ -33,25 +33,25 @@ function App() {
   });
 
   useEffect(() => {
-    // フルーツを定期的に生成
+    // フルーツ生成処理
     const fruitInterval = setInterval(() => {
       setFruits((prev) => [
         ...prev,
-        { id: Date.now(), x: Math.random() * 90, y: 0 },
+        { id: Date.now(), x: Math.random() * 90, y: 0 }, // ランダムな位置に生成
       ]);
     }, 1000);
 
-    // フルーツの落下処理
+    // フルーツ落下処理
     const dropInterval = setInterval(() => {
       setFruits((prev) =>
         prev
           .map((fruit) => ({
             ...fruit,
-            y: fruit.y + 5,
+            y: fruit.y + 2, // 落下速度
           }))
-          .filter((fruit) => fruit.y < 100) // 落ちすぎたフルーツを削除
+          .filter((fruit) => fruit.y <= 100) // 画面外のフルーツを削除
       );
-    }, 200);
+    }, 50);
 
     return () => {
       clearInterval(fruitInterval);
@@ -60,16 +60,16 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // フルーツとバスケットの衝突検出
+    // バスケットとフルーツの衝突判定
     setFruits((prev) =>
       prev.filter((fruit) => {
         if (
-          fruit.y > 85 &&
-          fruit.x > basketPosition - 10 &&
-          fruit.x < basketPosition + 10
+          fruit.y >= 90 && // フルーツがバスケットの高さ付近
+          fruit.x > basketPosition - 5 &&
+          fruit.x < basketPosition + 5
         ) {
-          setScore((s) => s + 1);
-          return false;
+          setScore((s) => s + 1); // スコア加算
+          return false; // キャッチしたフルーツを削除
         }
         return true;
       })
@@ -81,17 +81,14 @@ function App() {
   };
 
   return (
-<div className="game-container">
+    <div className="game-container">
       <h1>🍎 フルーツキャッチゲーム 🍇</h1>
       <p>スコア: {score}</p>
       {gameOver ? (
         <h2>ゲームオーバー！</h2>
       ) : (
         <>
-          <div
-            className="basket"
-            style={{ left: `${basketPosition}%` }}
-          ></div>
+          <div className="basket" style={{ left: `${basketPosition}%` }}></div>
           {fruits.map((fruit) => (
             <div
               key={fruit.id}

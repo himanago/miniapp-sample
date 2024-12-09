@@ -34,30 +34,34 @@
   text-align: center;
   position: relative;
   height: 100vh;
+  width: 100%;
   background-color: #f0f8ff;
   overflow: hidden;
 }
 
 .basket {
   position: absolute;
-  bottom: 10%;
-  width: 10%;
-  height: 2%;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 20px;
   background-color: #8b0000;
   border-radius: 10px;
 }
 
 .fruit {
   position: absolute;
-  width: 5%;
-  height: 5%;
+  width: 30px;
+  height: 30px;
   background-color: #ffa07a;
   border-radius: 50%;
+  aspect-ratio: 1 / 1; /* 比率を固定 */
 }
 
 .controls {
   position: absolute;
-  bottom: 5%;
+  bottom: 2%;
   width: 100%;
   display: flex;
   justify-content: center;
