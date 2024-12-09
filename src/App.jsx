@@ -2,133 +2,124 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import liff from "@line/liff";
 import "./App.css";
 
-const fruitTypes = [
-  { name: "apple", color: "red", size: 30, score: 1 },
-  { name: "banana", color: "yellow", size: 40, score: 2 },
-  { name: "grape", color: "purple", size: 20, score: 3 },
-];
-
 function App() {
-  const [basketPosition, setBasketPosition] = useState(50); // バスケットのX位置（%）
-  const [fruits, setFruits] = useState([]); // 落ちてくるフルーツ
-  const [score, setScore] = useState(0); // スコア
-  const [missedFruits, setMissedFruits] = useState(0); // 落としたフルーツの数
-  const [gameOver, setGameOver] = useState(false); // ゲームオーバー判定
-  const fruitCounter = useRef(0); // フルーツIDを管理
+  const canvasRef = useRef(null);
+  const [basketPosition, setBasketPosition] = useState(50);
+  const [score, setScore] = useState(0);
+  const [missedFruits, setMissedFruits] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
 
-  const resetGame = () => {
-    setBasketPosition(50);
-    setFruits([]);
-    setScore(0);
-    setMissedFruits(0);
-    setGameOver(false);
+  const fruits = useRef([]);
+  const fruitCounter = useRef(0);
+
+  useEffect(() => {
+    liff.init({ liffId: import.meta.env.VITE_LIFF_ID }).catch(console.error);
+  }, []);
+
+  const generateFruit = () => {
+    const fruitTypes = [
+      { color: "red", size: 20, points: 1 },
+      { color: "yellow", size: 30, points: 2 },
+      { color: "green", size: 40, points: 3 },
+    ];
+    const randomFruit =
+      fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
+
+    fruits.current.push({
+      id: fruitCounter.current++,
+      x: Math.random() * 90,
+      y: 0,
+      speed: 0.5 + Math.random() * 1, // 落下速度を調整
+      ...randomFruit,
+    });
+  };
+
+  const updateGame = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    // Canvas をクリア
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // バスケットを描画
+    const basketWidth = 50;
+    const basketHeight = 20;
+    ctx.fillStyle = "blue";
+    ctx.fillRect(
+      (basketPosition / 100) * canvas.width - basketWidth / 2,
+      canvas.height - basketHeight,
+      basketWidth,
+      basketHeight
+    );
+
+    // フルーツを更新＆描画
+    const updatedFruits = [];
+    fruits.current.forEach((fruit) => {
+      fruit.y += fruit.speed;
+
+      ctx.beginPath();
+      ctx.arc(
+        (fruit.x / 100) * canvas.width,
+        (fruit.y / 100) * canvas.height,
+        fruit.size,
+        0,
+        Math.PI * 2
+      );
+      ctx.fillStyle = fruit.color;
+      ctx.fill();
+
+      const basketLeft = (basketPosition / 100) * canvas.width - basketWidth / 2;
+      const basketRight = basketLeft + basketWidth;
+      const basketTop = canvas.height - basketHeight;
+
+      if (
+        fruit.y / 100 * canvas.height > basketTop &&
+        (fruit.x / 100) * canvas.width > basketLeft &&
+        (fruit.x / 100) * canvas.width < basketRight
+      ) {
+        setScore((prev) => prev + fruit.points);
+      } else if (fruit.y < 100) {
+        updatedFruits.push(fruit);
+      } else {
+        setMissedFruits((prev) => prev + 1);
+      }
+    });
+    fruits.current = updatedFruits;
   };
 
   useEffect(() => {
-    liff
-      .init({
-        liffId: import.meta.env.VITE_LIFF_ID,
-      })
-      .then(() => {
-        console.log("LIFF init succeeded.");
-      })
-      .catch((e) => {
-        console.error("LIFF init failed.", e);
-      });
-  }, []);
-
-  useEffect(() => {
     if (gameOver) return;
-  
-    // 初回に即座にフルーツを生成
-    const generateFruit = () => {
-      const randomFruit =
-        fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
-      setFruits((prev) => [
-        ...prev,
-        {
-          id: fruitCounter.current++,
-          x: Math.random() * 90,
-          y: 0,
-          type: randomFruit,
-        },
-      ]);
-    };
-  
-    generateFruit(); // 初回生成
-  
-    // フルーツ生成のインターバル
+
     const fruitInterval = setInterval(() => {
       generateFruit();
-    }, 2000); // 生成間隔を短縮
-  
-    // フルーツ落下処理
-    const dropInterval = setInterval(() => {
-      setFruits((prev) =>
-        prev.map((fruit) => ({
-          ...fruit,
-          y: fruit.y + 1.5, // 落下速度
-        }))
-      );
+    }, 2000); // フルーツ生成間隔を 3 秒に設定
+
+    const gameInterval = setInterval(() => {
+      updateGame();
     }, 50);
-  
+
     return () => {
       clearInterval(fruitInterval);
-      clearInterval(dropInterval);
+      clearInterval(gameInterval);
     };
-  }, [gameOver]);
+  }, [gameOver, basketPosition]);
 
   useEffect(() => {
-    if (gameOver) return;
-
-    const newFruits = [];
-    let missedCount = 0;
-
-    // 衝突判定と落としたフルーツのカウント
-    fruits.forEach((fruit) => {
-      const basketWidth = 10; // バスケットの幅（%）
-      if (
-        fruit.y >= 90 && // フルーツがバスケットの高さ付近
-        fruit.x > basketPosition - basketWidth / 2 &&
-        fruit.x < basketPosition + basketWidth / 2
-      ) {
-        setScore((s) => s + fruit.type.score); // スコア加算
-      } else if (fruit.y > 100) {
-        missedCount++; // 画面外に出たフルーツをカウント
-      } else {
-        newFruits.push(fruit); // 残すフルーツ
-      }
-    });
-
-    setFruits(newFruits);
-    if (missedCount > 0) {
-      setMissedFruits((prev) => prev + missedCount);
-    }
-
-    // ゲームオーバー判定
-    if (missedFruits + missedCount >= 5) {
+    if (missedFruits >= 5) {
       setGameOver(true);
     }
-  }, [fruits, basketPosition, missedFruits, gameOver]);
+  }, [missedFruits]);
 
-  // クリック操作でバスケットを移動
-  const handleWindowClick = useCallback(
-    (event) => {
-      if (gameOver) return;
+  const handleWindowClick = useCallback((event) => {
+    const clickX = event.clientX;
+    const windowWidth = window.innerWidth;
 
-      const clickX = event.clientX;
-      const windowWidth = window.innerWidth;
-
-      if (clickX < windowWidth / 2) {
-        // 左クリック
-        setBasketPosition((pos) => Math.max(0, pos - 5));
-      } else {
-        // 右クリック
-        setBasketPosition((pos) => Math.min(90, pos + 5));
-      }
-    },
-    [gameOver]
-  );
+    if (clickX < windowWidth / 2) {
+      setBasketPosition((pos) => Math.max(0, pos - 5));
+    } else {
+      setBasketPosition((pos) => Math.min(100, pos + 5));
+    }
+  }, []);
 
   useEffect(() => {
     window.addEventListener("click", handleWindowClick);
@@ -137,35 +128,29 @@ function App() {
     };
   }, [handleWindowClick]);
 
+  const handleRestart = () => {
+    setScore(0);
+    setMissedFruits(0);
+    setGameOver(false);
+    fruits.current = [];
+    fruitCounter.current = 0;
+  };
+
+  if (gameOver) {
+    return (
+      <div className="game-over">
+        <h1>ゲームオーバー</h1>
+        <p>スコア: {score}</p>
+        <button onClick={handleRestart}>再開</button>
+      </div>
+    );
+  }
+
   return (
     <div className="game-container">
-      <h1>🍎 フルーツキャッチゲーム 🍇</h1>
-      {gameOver ? (
-        <div className="game-over">
-          <h2>ゲームオーバー</h2>
-          <p>最終スコア: {score}</p>
-          <button onClick={resetGame}>もう一度プレイ</button>
-        </div>
-      ) : (
-        <>
-          <p>スコア: {score}</p>
-          <p>落としたフルーツ: {missedFruits} / 5</p>
-          <div className="basket" style={{ left: `${basketPosition}%` }}></div>
-          {fruits.map((fruit) => (
-            <div
-              key={fruit.id}
-              className="fruit"
-              style={{
-                left: `${fruit.x}%`,
-                top: `${fruit.y}%`,
-                backgroundColor: fruit.type.color,
-                width: `${fruit.type.size}px`,
-                height: `${fruit.type.size}px`,
-              }}
-            ></div>
-          ))}
-        </>
-      )}
+      <canvas ref={canvasRef} width={800} height={600}></canvas>
+      <p>スコア: {score}</p>
+      <p>ミス: {missedFruits}/5</p>
     </div>
   );
 }
