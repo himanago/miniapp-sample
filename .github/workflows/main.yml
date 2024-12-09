@@ -35,7 +35,7 @@ jobs:
         run: npm run build
         env:
           VITE_BASE_URL: /${{ github.event.repository.name }}/
-          VITE_LIFF_ID: 2006636999-MAqpnV9W
+          VITE_LIFF_ID: 2006637001-P1eDJ8Mg
 
       - name: Upload static files as artifact
         uses: actions/upload-pages-artifact@v3
