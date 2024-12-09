@@ -16,6 +16,14 @@ function App() {
   const [gameOver, setGameOver] = useState(false); // ゲームオーバー判定
   const fruitCounter = useRef(0); // フルーツIDを管理
 
+  const resetGame = () => {
+    setBasketPosition(50);
+    setFruits([]);
+    setScore(0);
+    setMissedFruits(0);
+    setGameOver(false);
+  };
+
   useEffect(() => {
     liff
       .init({
@@ -31,9 +39,9 @@ function App() {
 
   useEffect(() => {
     if (gameOver) return;
-
-    // フルーツ生成のインターバル
-    const fruitInterval = setInterval(() => {
+  
+    // 初回に即座にフルーツを生成
+    const generateFruit = () => {
       const randomFruit =
         fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
       setFruits((prev) => [
@@ -45,8 +53,15 @@ function App() {
           type: randomFruit,
         },
       ]);
-    }, 3000);
-
+    };
+  
+    generateFruit(); // 初回生成
+  
+    // フルーツ生成のインターバル
+    const fruitInterval = setInterval(() => {
+      generateFruit();
+    }, 2000); // 生成間隔を短縮
+  
     // フルーツ落下処理
     const dropInterval = setInterval(() => {
       setFruits((prev) =>
@@ -56,7 +71,7 @@ function App() {
         }))
       );
     }, 50);
-
+  
     return () => {
       clearInterval(fruitInterval);
       clearInterval(dropInterval);
@@ -129,6 +144,7 @@ function App() {
         <div className="game-over">
           <h2>ゲームオーバー</h2>
           <p>最終スコア: {score}</p>
+          <button onClick={resetGame}>もう一度プレイ</button>
         </div>
       ) : (
         <>
