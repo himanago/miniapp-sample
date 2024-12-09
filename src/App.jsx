@@ -8,6 +8,10 @@ function App() {
   const [score, setScore] = useState(0);
   const [missedFruits, setMissedFruits] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [canvasSize, setCanvasSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
   const fruits = useRef([]);
   const fruitCounter = useRef(0);
@@ -29,7 +33,7 @@ function App() {
       id: fruitCounter.current++,
       x: Math.random() * 90,
       y: 0,
-      speed: 0.5 + Math.random() * 1, // 落下速度を調整
+      speed: 0.5 + Math.random() * 1,
       ...randomFruit,
     });
   };
@@ -38,10 +42,8 @@ function App() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    // Canvas をクリア
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // バスケットを描画
     const basketWidth = 50;
     const basketHeight = 20;
     ctx.fillStyle = "blue";
@@ -52,7 +54,6 @@ function App() {
       basketHeight
     );
 
-    // フルーツを更新＆描画
     const updatedFruits = [];
     fruits.current.forEach((fruit) => {
       fruit.y += fruit.speed;
@@ -92,7 +93,7 @@ function App() {
 
     const fruitInterval = setInterval(() => {
       generateFruit();
-    }, 2000); // フルーツ生成間隔を 3 秒に設定
+    }, 3000);
 
     const gameInterval = setInterval(() => {
       updateGame();
@@ -121,12 +122,22 @@ function App() {
     }
   }, []);
 
+  const handleResize = useCallback(() => {
+    setCanvasSize({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  }, []);
+
   useEffect(() => {
     window.addEventListener("click", handleWindowClick);
+    window.addEventListener("resize", handleResize);
+
     return () => {
       window.removeEventListener("click", handleWindowClick);
+      window.removeEventListener("resize", handleResize);
     };
-  }, [handleWindowClick]);
+  }, [handleWindowClick, handleResize]);
 
   const handleRestart = () => {
     setScore(0);
@@ -148,7 +159,11 @@ function App() {
 
   return (
     <div className="game-container">
-      <canvas ref={canvasRef} width={800} height={600}></canvas>
+      <canvas
+        ref={canvasRef}
+        width={canvasSize.width}
+        height={canvasSize.height}
+      ></canvas>
       <p>スコア: {score}</p>
       <p>ミス: {missedFruits}/5</p>
     </div>
